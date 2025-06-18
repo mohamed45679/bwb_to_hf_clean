@@ -1,0 +1,44 @@
+﻿name: Upload to HuggingFace
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      SRU_URL:  https://zoekservice.overheid.nl/sru/Search
+      CQL_QUERY: "modified<=2025-02-13"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Crawl SRU
+      run: |
+        python scripts/crawler.py `
+          --sru_url      "$env:SRU_URL" `
+          --cql_query    "$env:CQL_QUERY" `
+          --sru_version  1.2 `
+          --connection   BWB `
+          --out_dir      "./data" `
+          --batch_size   100
+
+    - name: Upload to HF
+      run: |
+        python scripts/update_dataset.py `
+          --repo_id    "Moha8med80/Access_model" `
+          --token      "$env:HF_TOKEN" `
+          --data_dir   "./data" `
+          --force_remote
