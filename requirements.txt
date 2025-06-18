@@ -1,0 +1,5 @@
+requests
+lxml
+huggingface_hub
+tqdm
+python-dotenv

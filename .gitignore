@@ -1,0 +1,5 @@
+﻿venv/
+data*/
+.env
+env.py
+*.pyc

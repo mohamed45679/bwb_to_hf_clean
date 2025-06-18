@@ -1,0 +1,31 @@
+name: Build & Update Dataset
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Crawl incremental data
+        run: |
+          python scripts/crawler.py \
+            --sru_url "$SRU_URL" \
+            --cql_query "$CQL_QUERY" \
+            --since_file last_crawl.json \
+            --out_dir data/ \
+            --batch_size 100
+      - name: Update Hugging Face dataset
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python scripts/update_dataset.py \
+            --repo_id "Moha8med80/Access_model" \
+            --token   "$HF_TOKEN"
