@@ -9,7 +9,7 @@ Supports resumable uploads via upload_progress.json.
 
 Usage:
   python update_dataset.py \
-    --repo_id "Moha8med80/Access_model" \
+    --repo_id "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
     --token   "$HF_TOKEN" \
     --data_dir "../data3" \
     [--shard_size 250] \
