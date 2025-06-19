@@ -40,7 +40,7 @@ jobs:
     - name: Upload to HF
       run: |
         python scripts/update_dataset.py \
-          --repo_id   "Moha8med80/Access_model" \
+          --repo_id   "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
           --token     "$HF_TOKEN" \
           --data_dir  "./data" \
           --force_remote
