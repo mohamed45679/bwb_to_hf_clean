@@ -2,7 +2,7 @@ $start =6500
 $end = 26400
 $step = 500
 $token = $env:HF_TOKEN
-$repo = "Moha8med80/Access_model"
+$repo = "vGassen/Dutch-Basisbestandwetten-Legislation-Laws"
 
 for ($i = $start; $i -lt $end; $i += $step) {
     $s = $i
