@@ -4,7 +4,7 @@
     [int]$step       = 500
 )
 
-$repo  = "Moha8med80/Access_model"
+$repo  = "vGassen/Dutch-Basisbestandwetten-Legislation-Laws"
 $token = $env:HF_TOKEN
 if (-not $token) { throw "❌ يجب ضبط HF_TOKEN" }
 
