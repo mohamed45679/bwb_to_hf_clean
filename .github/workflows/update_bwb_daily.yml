@@ -1,35 +1,46 @@
-name: Update BWB Dataset Daily
+﻿name: Update BWB dataset daily
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'  # Every day at 03:00 UTC
-  workflow_dispatch:     # Allow manual triggering too
+    - cron: "23 3 * * *"   # every day 03:23 UTC  (change if you like)
 
 jobs:
-  update-bwb:
+  upload:
     runs-on: ubuntu-latest
+
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      SRU_URL:  https://zoekservice.overheid.nl/sru/Search
+      CQL_QUERY: "modified<=2025-02-13"
 
     steps:
-      - name: 📥 Checkout repo
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
 
-      - name: 📦 Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
 
-      - name: 🧲 Run Crawler
-        run: |
-          python scripts/crawler.py --batch_size 100
+    - name:  Crawl SRU
+      run: |
+        python scripts/crawler.py \
+          --sru_url      "$SRU_URL" \
+          --cql_query    "$CQL_QUERY" \
+          --sru_version  1.2 \
+          --connection   BWB \
+          --out_dir      "./data" \
+          --batch_size   100
 
-      - name: ⬆️ Upload to Hugging Face
-        run: |
-          python scripts/update_dataset.py \
-            --repo_id "vGassen/Dutch-Basisbestandwetten-Legislation-Laws"
+    - name:  Upload to Hugging Face
+      run: |
+        python scripts/update_dataset.py \
+          --repo_id   "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
+          --token     "$HF_TOKEN" \
+          --data_dir  "./data" \
+          --force_remote
