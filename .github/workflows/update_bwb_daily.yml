@@ -1,31 +1,33 @@
-﻿name: Update BWB daily and push to Hugging Face
+﻿name: Update BWB dataset daily
 
 on:
-  workflow_dispatch:            # manual run
+  workflow_dispatch:
   schedule:
-    - cron:  '0 3 * * *'        # every day at 03:00 UTC (adjust if you like)
+    - cron: "23 3 * * *"   # every day 03:23 UTC  (change if you like)
 
 jobs:
-  update:
+  upload:
     runs-on: ubuntu-latest
 
     env:
-      HF_TOKEN:   ${{ secrets.HF_TOKEN }}
-      SRU_URL:    https://zoekservice.overheid.nl/sru/Search
-      CQL_QUERY:  "modified<=2025-02-13"
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      SRU_URL:  https://zoekservice.overheid.nl/sru/Search
+      CQL_QUERY: "modified<=2025-02-13"
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    - name: Install deps
-      run: pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
 
-    - name: 🚜 Crawl SRU
+    - name:  Crawl SRU
       run: |
         python scripts/crawler.py \
           --sru_url      "$SRU_URL" \
@@ -35,10 +37,10 @@ jobs:
           --out_dir      "./data" \
           --batch_size   100
 
-    - name: ⬆️ Upload to Hugging Face
+    - name:  Upload to Hugging Face
       run: |
         python scripts/update_dataset.py \
-          --repo_id   "vGassen/Dutch-BasisWettenbestand-Laws" \
+          --repo_id   "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
           --token     "$HF_TOKEN" \
           --data_dir  "./data" \
           --force_remote
