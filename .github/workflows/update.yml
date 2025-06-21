@@ -1,31 +1,44 @@
 name: Build & Update Dataset
+
 on:
-  workflow_dispatch:
+  workflow_dispatch:        # تشغيل يدوي
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 3 * * *'     # كل يوم 03:00 UTC
+
 jobs:
   update:
     runs-on: ubuntu-latest
+
+    env:                    # متغيّرات البيئة المستخدَمة فى الخطوات
+      SRU_URL:  https://zoekservice.overheid.nl/sru/Search
+      CQL_QUERY: modified<=2025-02-13
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
       - name: Install deps
         run: pip install -r requirements.txt
+
       - name: Crawl incremental data
         run: |
           python scripts/crawler.py \
-            --sru_url "$SRU_URL" \
-            --cql_query "$CQL_QUERY" \
-            --since_file last_crawl.json \
-            --out_dir data/ \
-            --batch_size 100
-      - name: Update Hugging Face dataset
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+            --sru_url      "$SRU_URL" \
+            --cql_query    "$CQL_QUERY" \
+            --sru_version  1.2 \
+            --connection   BWB \
+            --out_dir      data \
+            --batch_size   100
+
+      - name:  Update Hugging Face dataset
         run: |
           python scripts/update_dataset.py \
-            --repo_id "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
-            --token   "$HF_TOKEN"
+            --repo_id   "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
+            --token     "$HF_TOKEN" \
+            --data_dir  ./data \
+            --force_remote
