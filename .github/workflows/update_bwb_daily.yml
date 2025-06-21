@@ -1,33 +1,37 @@
-﻿name: Update BWB dataset daily
+﻿name: Update BWB daily
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "23 3 * * *"   # every day 03:23 UTC  (change if you like)
+    - cron:  '13 2 * * *'   # every day 02:13 UTC
 
 jobs:
-  upload:
+  update:
     runs-on: ubuntu-latest
 
     env:
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      SRU_URL:  https://zoekservice.overheid.nl/sru/Search
+      HF_TOKEN:  ${{ secrets.HF_TOKEN }}
+      SRU_URL:   https://zoekservice.overheid.nl/sru/Search
       CQL_QUERY: "modified<=2025-02-13"
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
 
-    - name: Install dependencies
+    - name: Install Git-LFS
       run: |
-        pip install -r requirements.txt
+        sudo apt-get update -y
+        sudo apt-get install -y git-lfs
+        git lfs install
 
-    - name:  Crawl SRU
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Crawl BWB
       run: |
         python scripts/crawler.py \
           --sru_url      "$SRU_URL" \
@@ -37,10 +41,10 @@ jobs:
           --out_dir      "./data" \
           --batch_size   100
 
-    - name:  Upload to Hugging Face
+    - name: Upload to Hugging Face
       run: |
         python scripts/update_dataset.py \
-          --repo_id   "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
-          --token     "$HF_TOKEN" \
-          --data_dir  "./data" \
+          --repo_id  "vGassen/Dutch-Basisbestandwetten-Legislation-Laws" \
+          --token    "$HF_TOKEN" \
+          --data_dir "./data" \
           --force_remote
