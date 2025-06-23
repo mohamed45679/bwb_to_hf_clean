@@ -123,11 +123,11 @@ def main():
     # Determine resume index
     local_idx  = load_local_index()
     remote_idx = remote_index(api, args.repo_id, args.token)
+     #remote_idx if args.force_remote else max(local_idx, remote_idx)
     # If force_remote: resume from local progress only; else pick the furthest
     # start_at = loc_idx if args.force_remote else max(loc_idx, rem_idx)
 
-    start_at   = local_idx if args.force_remote else max(local_idx, remote_idx)
-
+    start_at   =remote_idx if args.force_remote else max(local_idx, remote_idx)
     files = list_xml(data_dir)
     total = len(files)
     if start_at >= total:
